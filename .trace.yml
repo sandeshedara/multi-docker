@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t sandeshedara/react-test -f ./client/Dockerfile.dev ./client
+ 
+script:
+  - docker run sandeshedara/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t sandeshedara/multi-client ./client
+  - docker build -t sandeshedara/multi-nginx ./nginx
+  - docker build -t sandeshedara/multi-server ./server
+  - docker build -t sandeshedara/multi-worker ./worker
+  # Take the images and push them docker hub
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push sandeshedara/multi-client
+  - docker push sandeshedara/multi-nginx
+  - docker push sandeshedara/multi-server
+  - docker push sandeshedara/multi-worker
